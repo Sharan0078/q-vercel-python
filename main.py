@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing import List
 import json
-from fastapi.responses import JSONResponse
-from fastapi.requests import Request
 
 app = FastAPI()
 
-# CORS enabled
+# Enable CORS for all domains
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,12 +14,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load marks data
-with open("q-vercel-python.json", "r") as f:
+# Load marks data once
+with open("q-vercel-python.json") as f:
     data = json.load(f)
-    marks_dict = {item["name"]: item["marks"] for item in data}
 
+# API endpoint
 @app.get("/api")
-async def get_marks(name: List[str]):
-    result = [marks_dict.get(n, None) for n in name]
-    return JSONResponse(content={"marks": result})
+def get_marks(name: List[str]):
+    name_to_marks = {entry["name"]: entry["marks"] for entry in data}
+    marks = [name_to_marks.get(n, None) for n in name]
+    return JSONResponse(content={"marks": marks})
